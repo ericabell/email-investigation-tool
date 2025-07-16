@@ -81,8 +81,12 @@ class EmailInvestigationTool:
         timing = f" ({entry.timing_info})" if entry.timing_info else ""
         self.logger.info(f"SMTP {direction}: {entry.data}{timing}")
     
-    async def run_network_analysis(self):
+    async def run_network_analysis(self, clear_screen=False):
         """Run comprehensive network analysis."""
+        if clear_screen:
+            # Clear screen and move cursor to top when called interactively
+            self.console.clear()
+        
         self.console.print("[yellow]Running network analysis...[/yellow]")
         
         # DNS analysis
@@ -136,9 +140,17 @@ class EmailInvestigationTool:
             self.console.print("[green]  ✓ No ISP interference detected[/green]")
         
         self.console.print("[green]Network analysis complete[/green]")
+        
+        if clear_screen:
+            self.console.print("[dim]Press Enter to return to dashboard...[/dim]")
+            self.console.input()
     
-    async def load_imap_data(self):
+    async def load_imap_data(self, clear_screen=False):
         """Load IMAP folders and inbox messages."""
+        if clear_screen:
+            # Clear screen and move cursor to top when called interactively
+            self.console.clear()
+        
         self.console.print("[yellow]Loading IMAP data...[/yellow]")
         
         try:
@@ -169,10 +181,16 @@ class EmailInvestigationTool:
             
         except Exception as e:
             self.console.print(f"[yellow]  ⚠ IMAP unavailable: {e}[/yellow]")
+        
+        if clear_screen:
+            self.console.print("[dim]Press Enter to return to dashboard...[/dim]")
+            self.console.input()
     
     def generate_test_file(self):
         """Generate a test file for attachment."""
         try:
+            # Clear screen and move cursor to top
+            self.console.clear()
             self.console.print("[bold]Generate Test File[/bold]")
             
             size_mb = IntPrompt.ask("File size in MB", default=5, console=self.console)
@@ -213,6 +231,8 @@ class EmailInvestigationTool:
     def compose_email(self):
         """Interactive email composition."""
         try:
+            # Clear screen and move cursor to top
+            self.console.clear()
             self.console.print("[bold]Email Composition[/bold]")
             
             to_addr = Prompt.ask("To address", default=self.dashboard.email_to, console=self.console)
@@ -245,12 +265,16 @@ class EmailInvestigationTool:
     async def send_test_email(self):
         """Send a test email with comprehensive debugging."""
         if not self.dashboard.email_to or not self.dashboard.email_from:
+            # Clear screen and move cursor to top
+            self.console.clear()
             self.console.print("[red]Please compose email first (To and From required)[/red]")
             self.console.print("[dim]Press Enter to return to dashboard...[/dim]")
             self.console.input()
             return
         
         try:
+            # Clear screen and move cursor to top
+            self.console.clear()
             self.console.print("[bold]Sending Test Email[/bold]")
             self.console.print(f"[cyan]To: {self.dashboard.email_to}[/cyan]")
             self.console.print(f"[cyan]From: {self.dashboard.email_from}[/cyan]")
@@ -360,15 +384,12 @@ This email is being sent to test SMTP functionality and debug potential issues."
         self.console.print("[bold green]🎯 Initialization Complete - Starting Dashboard[/bold green]")
         self.console.print()
         
-        with Live(self.dashboard.render(), console=self.console, refresh_per_second=2) as live:
+        with Live(self.dashboard.render(), console=self.console, refresh_per_second=1) as live:
             self.console.print("[green]Email Investigation Tool started![/green]")
             self.console.print("Commands: [cyan]T[/cyan]=Theme, [cyan]G[/cyan]=Generate File, [cyan]C[/cyan]=Compose, [cyan]S[/cyan]=Send, [cyan]N[/cyan]=Network Analysis, [cyan]I[/cyan]=Reload IMAP, [cyan]Q[/cyan]=Quit")
             
             while self.running:
                 try:
-                    # Update display
-                    live.update(self.dashboard.render())
-                    
                     # Get user input (non-blocking)
                     key = self.console.input("")
                     
@@ -378,26 +399,32 @@ This email is being sent to test SMTP functionality and debug potential issues."
                         self.dashboard.toggle_theme()
                         self.console = Console(theme=self.theme_manager.rich_theme)
                         live.console = self.console
+                        live.update(self.dashboard.render())
                     elif key.lower() == 'g':
                         live.stop()
                         self.generate_test_file()
                         live.start()
+                        live.update(self.dashboard.render())
                     elif key.lower() == 'c':
                         live.stop()
                         self.compose_email()
                         live.start()
+                        live.update(self.dashboard.render())
                     elif key.lower() == 's':
                         live.stop()
                         await self.send_test_email()
                         live.start()
+                        live.update(self.dashboard.render())
                     elif key.lower() == 'n':
                         live.stop()
-                        await self.run_network_analysis()
+                        await self.run_network_analysis(clear_screen=True)
                         live.start()
+                        live.update(self.dashboard.render())
                     elif key.lower() == 'i':
                         live.stop()
-                        await self.load_imap_data()
+                        await self.load_imap_data(clear_screen=True)
                         live.start()
+                        live.update(self.dashboard.render())
                     
                     # Small delay to prevent excessive CPU usage
                     await asyncio.sleep(0.1)

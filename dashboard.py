@@ -66,8 +66,7 @@ class Dashboard:
         )
         
         self.layout["right_column"].split_column(
-            Layout(name="imap_info", size=10),
-            Layout(name="network_analysis", size=12),
+            Layout(name="network_analysis", size=15),
             Layout(name="file_management", size=8),
             Layout(name="statistics", ratio=1)
         )
@@ -349,7 +348,6 @@ class Dashboard:
         """Update all dashboard panels."""
         self.layout["header"].update(self._create_header())
         self.layout["smtp_log"].update(self._create_smtp_log_panel())
-        self.layout["imap_info"].update(self._create_imap_info_panel())
         self.layout["network_analysis"].update(self._create_network_analysis_panel())
         self.layout["email_composition"].update(self._create_email_composition_panel())
         self.layout["file_management"].update(self._create_file_management_panel())

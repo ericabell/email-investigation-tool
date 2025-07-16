@@ -89,7 +89,7 @@ LIGHT_THEME = ThemeColors(
     
     button_active="dark_green",
     button_inactive="grey50",
-    input_field="black on light_blue",
+    input_field="black on cyan",
     highlight="dark_orange",
     
     progress_bar="dark_blue",
