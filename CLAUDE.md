@@ -10,13 +10,15 @@ The `email-investigation-tool` is a comprehensive SMTP debugging and ISP interfe
 
 ### Core Components
 - **main.py**: Main application orchestrator with Rich Live dashboard
-- **smtp_client.py**: Enhanced SMTP client with detailed protocol logging and ISP interference detection
+- **smtp_client.py**: Enhanced SMTP client with detailed protocol logging and SSL/TLS support (port 465 + STARTTLS)
 - **network_analyzer.py**: Network path analysis, DNS resolution, traceroute, and ISP detection
 - **dashboard.py**: Rich-based multi-panel dashboard with real-time updates
 - **themes.py**: Light/dark mode theme system for terminal compatibility
 - **file_generator.py**: Generates test files up to 20MB+ with various patterns
 - **gpg_manager.py**: GPG integration for email signing and encryption with size tracking
 - **config.py**: Configuration management with .env file support
+- **imap_client.py**: IMAP folder browsing and inbox message retrieval
+- **network_monitor.py**: Process-specific network traffic monitoring for security verification
 
 ### Key Features
 - **Real-time SMTP Protocol Logging**: Complete conversation logging with timing
@@ -30,8 +32,9 @@ The `email-investigation-tool` is a comprehensive SMTP debugging and ISP interfe
 
 ### Setup
 ```bash
-# Install dependencies
-pip install -r requirements.txt  # or use the pyproject.toml
+# Install dependencies (recommended: use uv)
+uv sync
+# Alternative: pip install -r requirements.txt
 
 # Copy environment template
 cp .env.example .env
@@ -43,12 +46,21 @@ cp .env.example .env
 python main.py
 ```
 
+### Testing Commands
+```bash
+# No specific test framework - use the interactive testing features
+# Generate test files: G command in application
+# Send test emails: S command in application
+# Network analysis: N command in application
+```
+
 ### Interactive Commands (in application)
 - `T` - Toggle light/dark theme
 - `G` - Generate test file (various sizes and types)
 - `C` - Compose email (To, From, Subject, GPG options)
 - `S` - Send test email with full debugging
 - `N` - Run network analysis
+- `I` - Reload IMAP folder data
 - `Q` - Quit application
 
 ## Configuration
@@ -112,6 +124,39 @@ Critical dependencies for core functionality:
 - `scapy` - Network packet analysis
 - `psutil` - System resource monitoring
 
+## Important Implementation Details
+
+### SMTP SSL/TLS Handling
+The tool correctly handles both SSL and TLS connections:
+- **Port 465**: Uses `SMTP_SSL` for immediate SSL connection
+- **Port 587**: Uses `SMTP` with `STARTTLS` for opportunistic TLS
+- **Port 25**: Plain SMTP (usually blocked by ISPs)
+- **Port 2525**: Alternative submission port
+
+### Network Security
+- **Process-specific monitoring**: Only tracks connections from the current Python process
+- **Credential protection**: Sanitizes all logs to prevent credential leakage
+- **Suspicious connection detection**: Alerts on unexpected outbound connections
+- **Comprehensive auditing**: Full network traffic logs for security verification
+
+### Error Handling
+- **Graceful degradation**: Network analysis continues even if some components fail
+- **Timeout management**: Prevents hanging on slow network operations
+- **User feedback**: Clear error messages and troubleshooting hints
+- **Recovery mechanisms**: Automatic retry and fallback strategies
+
+### Performance Considerations
+- **Chunked transfers**: Handles large files efficiently with 8KB chunks
+- **Memory management**: Streams large files rather than loading entirely into memory
+- **Async operations**: Network analysis runs concurrently where possible
+- **Resource cleanup**: Proper cleanup of temporary files and connections
+
 ## Development Notes
 
 This tool is specifically designed for debugging SMTP issues with large attachments where ISP interference is suspected. The comprehensive logging and network analysis capabilities make it ideal for identifying exactly where and why email transfers fail.
+
+### Recent Fixes
+- Fixed SMTP_SSL constructor parameter mismatch for port 465 connections
+- Improved interactive prompt handling with Live dashboard
+- Enhanced traceroute timeout handling to prevent hanging
+- Added comprehensive network traffic monitoring for security verification
